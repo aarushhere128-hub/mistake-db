@@ -3,10 +3,15 @@
 // ==========================================
 
 import {
+
     addMistakeToDB,
+
     getMistakesFromDB,
+
     deleteMistakeFromDB,
+
     getStudyEngineSubjects
+
 } from "./firebase.js";
 
 
@@ -16,16 +21,184 @@ import {
 
 let mistakes = [];
 
+let subjects = [];
+
 
 // ==========================================
 // DOM
 // ==========================================
 
-const addMistakeBtn =
-    document.getElementById("addMistakeBtn");
+const subjectSelect =
+    document.getElementById(
+        "mistakeSubject"
+    );
+
+const chapterSelect =
+    document.getElementById(
+        "mistakeChapter"
+    );
+
+const saveMistakeBtn =
+    document.getElementById(
+        "saveMistakeBtn"
+    );
 
 const mistakesList =
-    document.getElementById("mistakesList");
+    document.getElementById(
+        "mistakesList"
+    );
+
+
+// ==========================================
+// LOAD STUDY ENGINE DATA
+// ==========================================
+
+async function loadStudyEngineData() {
+
+    try {
+
+        subjects =
+            await getStudyEngineSubjects();
+
+        populateSubjects();
+
+    } catch (error) {
+
+        console.error(error);
+
+        subjectSelect.innerHTML = `
+
+            <option value="">
+                Failed to load subjects
+            </option>
+
+        `;
+
+    }
+
+}
+
+
+// ==========================================
+// POPULATE SUBJECTS
+// ==========================================
+
+function populateSubjects() {
+
+    subjectSelect.innerHTML = `
+
+        <option value="">
+            Select subject
+        </option>
+
+    `;
+
+
+    subjects.forEach(
+        subject => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                subject.id;
+
+            option.textContent =
+                subject.name;
+
+            subjectSelect.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// POPULATE CHAPTERS
+// ==========================================
+
+function populateChapters() {
+
+    const subjectId =
+        subjectSelect.value;
+
+
+    chapterSelect.innerHTML = "";
+
+
+    if (!subjectId) {
+
+        chapterSelect.innerHTML = `
+
+            <option value="">
+                Select a subject first
+            </option>
+
+        `;
+
+        return;
+    }
+
+
+    const subject =
+        subjects.find(
+            subject =>
+                subject.id === subjectId
+        );
+
+
+    if (!subject ||
+        !subject.chapters ||
+        subject.chapters.length === 0) {
+
+        chapterSelect.innerHTML = `
+
+            <option value="">
+                No chapters available
+            </option>
+
+        `;
+
+        return;
+    }
+
+
+    chapterSelect.innerHTML = `
+
+        <option value="">
+            Select chapter
+        </option>
+
+    `;
+
+
+    subject.chapters.forEach(
+        chapter => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                chapter.id;
+
+            option.textContent =
+                chapter.name;
+
+            chapterSelect.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
 
 
 // ==========================================
@@ -52,11 +225,12 @@ async function loadMistakes() {
             "<p>Failed to load mistakes.</p>";
 
     }
+
 }
 
 
 // ==========================================
-// RENDER
+// RENDER MISTAKES
 // ==========================================
 
 function renderMistakes() {
@@ -73,117 +247,243 @@ function renderMistakes() {
     mistakesList.innerHTML = "";
 
 
-    mistakes.forEach(mistake => {
+    mistakes.forEach(
+        mistake => {
 
-        const div =
-            document.createElement("div");
+            const div =
+                document.createElement(
+                    "div"
+                );
 
-        div.className =
-            "mistake-card";
-
-
-        div.innerHTML = `
-
-            <h3>
-                ${escapeHTML(
-                    mistake.question || "Untitled mistake"
-                )}
-            </h3>
-
-            <p>
-                <strong>Type:</strong>
-                ${escapeHTML(
-                    mistake.mistakeType || "Not specified"
-                )}
-            </p>
-
-            <p>
-                <strong>How to fix:</strong>
-                ${escapeHTML(
-                    mistake.fix || "Not specified"
-                )}
-            </p>
-
-            <button
-                class="delete-btn"
-                data-id="${mistake.id}"
-            >
-                Delete
-            </button>
-
-        `;
+            div.className =
+                "mistake-card";
 
 
-        const deleteButton =
-            div.querySelector(".delete-btn");
+            const subject =
+                subjects.find(
+                    s =>
+                        s.id ===
+                        mistake.subjectId
+                );
 
 
-        deleteButton.addEventListener(
-            "click",
-            () => deleteMistake(mistake.id)
-        );
+            const chapter =
+                subject?.chapters?.find(
+                    c =>
+                        c.id ===
+                        mistake.chapterId
+                );
 
 
-        mistakesList.appendChild(div);
+            div.innerHTML = `
 
-    });
+                <h3>
+                    ${escapeHTML(
+                        mistake.question
+                    )}
+                </h3>
+
+                <p>
+                    <strong>
+                        ${escapeHTML(
+                            subject?.name ||
+                            "Unknown subject"
+                        )}
+                    </strong>
+
+                    —
+
+                    ${escapeHTML(
+                        chapter?.name ||
+                        "Unknown chapter"
+                    )}
+                </p>
+
+                <p>
+                    <strong>Type:</strong>
+                    ${escapeHTML(
+                        mistake.mistakeType ||
+                        "Not specified"
+                    )}
+                </p>
+
+                <p>
+                    <strong>
+                        What went wrong:
+                    </strong>
+
+                    ${escapeHTML(
+                        mistake.explanation ||
+                        "Not recorded"
+                    )}
+                </p>
+
+                <p>
+                    <strong>
+                        How to fix:
+                    </strong>
+
+                    ${escapeHTML(
+                        mistake.fix ||
+                        "Not recorded"
+                    )}
+                </p>
+
+                <button
+                    class="delete-btn"
+                    data-id="${mistake.id}"
+                >
+                    Delete
+                </button>
+
+            `;
+
+
+            div
+                .querySelector(".delete-btn")
+                .addEventListener(
+                    "click",
+                    () =>
+                        deleteMistake(
+                            mistake.id
+                        )
+                );
+
+
+            mistakesList.appendChild(
+                div
+            );
+
+        }
+    );
+
 }
 
 
 // ==========================================
-// ADD MISTAKE
+// SAVE MISTAKE
 // ==========================================
 
-async function addMistake() {
+async function saveMistake() {
+
+    const subjectId =
+        subjectSelect.value;
+
+    const chapterId =
+        chapterSelect.value;
 
     const question =
-        prompt("What was your mistake?");
+        document
+            .getElementById(
+                "mistakeQuestion"
+            )
+            .value
+            .trim();
+
+    const mistakeType =
+        document
+            .getElementById(
+                "mistakeType"
+            )
+            .value;
+
+    const explanation =
+        document
+            .getElementById(
+                "mistakeExplanation"
+            )
+            .value
+            .trim();
+
+    const fix =
+        document
+            .getElementById(
+                "mistakeFix"
+            )
+            .value
+            .trim();
 
 
-    if (!question ||
-        !question.trim()) {
+    if (!subjectId) {
+
+        alert(
+            "Select a subject."
+        );
 
         return;
     }
 
 
-    const mistakeType =
-        prompt(
-            "Mistake type?\n\nExample: Conceptual, Calculation, Memory"
+    if (!chapterId) {
+
+        alert(
+            "Select a chapter."
         );
 
+        return;
+    }
 
-    const fix =
-        prompt(
-            "How should you fix it?"
+
+    if (!question) {
+
+        alert(
+            "Enter the question or problem."
         );
+
+        return;
+    }
 
 
     const mistake = {
 
+        subjectId:
+
+            subjectId,
+
+        chapterId:
+
+            chapterId,
+
         question:
-            question.trim(),
+
+            question,
 
         mistakeType:
-            mistakeType
-                ? mistakeType.trim()
-                : "",
+
+            mistakeType,
+
+        explanation:
+
+            explanation,
 
         fix:
-            fix
-                ? fix.trim()
-                : "",
 
-        priority: 1,
+            fix,
 
-        timesRepeated: 0,
+        priority:
+
+            1,
+
+        timesRepeated:
+
+            0,
 
         createdAt:
+
             new Date().toISOString(),
 
-        lastReviewed: null
+        lastReviewed:
+
+            null
 
     };
+
+
+    saveMistakeBtn.disabled =
+        true;
+
+    saveMistakeBtn.textContent =
+        "Saving...";
 
 
     try {
@@ -192,7 +492,28 @@ async function addMistake() {
             mistake
         );
 
+
+        document
+            .getElementById(
+                "mistakeQuestion"
+            )
+            .value = "";
+
+        document
+            .getElementById(
+                "mistakeExplanation"
+            )
+            .value = "";
+
+        document
+            .getElementById(
+                "mistakeFix"
+            )
+            .value = "";
+
+
         await loadMistakes();
+
 
     } catch (error) {
 
@@ -203,11 +524,19 @@ async function addMistake() {
         );
 
     }
+
+
+    saveMistakeBtn.disabled =
+        false;
+
+    saveMistakeBtn.textContent =
+        "Save Mistake";
+
 }
 
 
 // ==========================================
-// DELETE
+// DELETE MISTAKE
 // ==========================================
 
 async function deleteMistake(
@@ -221,7 +550,9 @@ async function deleteMistake(
 
 
     if (!confirmed) {
+
         return;
+
     }
 
 
@@ -242,6 +573,7 @@ async function deleteMistake(
         );
 
     }
+
 }
 
 
@@ -252,11 +584,31 @@ async function deleteMistake(
 function escapeHTML(value) {
 
     return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 
 }
 
@@ -265,14 +617,29 @@ function escapeHTML(value) {
 // EVENTS
 // ==========================================
 
-addMistakeBtn.addEventListener(
+subjectSelect.addEventListener(
+    "change",
+    populateChapters
+);
+
+
+saveMistakeBtn.addEventListener(
     "click",
-    addMistake
+    saveMistake
 );
 
 
 // ==========================================
-// START
+// INITIAL LOAD
 // ==========================================
 
-loadMistakes();
+async function initialize() {
+
+    await loadStudyEngineData();
+
+    await loadMistakes();
+
+}
+
+
+initialize();
