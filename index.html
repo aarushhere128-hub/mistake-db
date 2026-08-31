@@ -1,35 +1,195 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#111111">
 
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<title>Mistake DB</title>
+    <meta
+        name="theme-color"
+        content="#111111"
+    >
 
-</head><body><header>
+    <link
+        rel="manifest"
+        href="manifest.json"
+    >
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <title>Mistake DB</title>
+
+</head>
+
+
+<body>
+
+<header>
+
     <h1>🧠 Mistake DB</h1>
-    <p>Your personal mistake database</p>
+
+    <p>
+        Capture mistakes. Fix them. Don't repeat them.
+    </p>
+
 </header>
+
 
 <main>
 
-    <section id="app">
-        <h2>Mistakes</h2>
 
-        <button id="addMistakeBtn">
-            + Add Mistake
+    <!-- ======================================
+         ADD MISTAKE
+    ======================================= -->
+
+    <section>
+
+        <h2>Add Mistake</h2>
+
+
+        <!-- SUBJECT -->
+
+        <label for="mistakeSubject">
+            Subject
+        </label>
+
+        <select id="mistakeSubject">
+
+            <option value="">
+                Loading subjects...
+            </option>
+
+        </select>
+
+
+        <!-- CHAPTER -->
+
+        <label for="mistakeChapter">
+            Chapter
+        </label>
+
+        <select id="mistakeChapter">
+
+            <option value="">
+                Select a subject first
+            </option>
+
+        </select>
+
+
+        <!-- QUESTION -->
+
+        <label for="mistakeQuestion">
+            Question / Problem
+        </label>
+
+        <textarea
+            id="mistakeQuestion"
+            placeholder="What question did you get wrong?"
+        ></textarea>
+
+
+        <!-- TYPE -->
+
+        <label for="mistakeType">
+            Mistake Type
+        </label>
+
+        <select id="mistakeType">
+
+            <option value="Conceptual">
+                Conceptual
+            </option>
+
+            <option value="Calculation">
+                Calculation
+            </option>
+
+            <option value="Memory">
+                Memory
+            </option>
+
+            <option value="Careless">
+                Careless
+            </option>
+
+            <option value="Application">
+                Application
+            </option>
+
+            <option value="Other">
+                Other
+            </option>
+
+        </select>
+
+
+        <!-- WHAT WENT WRONG -->
+
+        <label for="mistakeExplanation">
+            What went wrong?
+        </label>
+
+        <textarea
+            id="mistakeExplanation"
+            placeholder="Why did you make the mistake?"
+        ></textarea>
+
+
+        <!-- FIX -->
+
+        <label for="mistakeFix">
+            How to fix it
+        </label>
+
+        <textarea
+            id="mistakeFix"
+            placeholder="What should you do differently next time?"
+        ></textarea>
+
+
+        <button id="saveMistakeBtn">
+            Save Mistake
         </button>
 
-        <div id="mistakesList">
-            <p>No mistakes recorded yet.</p>
-        </div>
     </section>
+
+
+    <!-- ======================================
+         MISTAKES
+    ======================================= -->
+
+    <section>
+
+        <h2>Your Mistakes</h2>
+
+        <div id="mistakesList">
+
+            <p>
+                Loading mistakes...
+            </p>
+
+        </div>
+
+    </section>
+
 
 </main>
 
-<script type="module" src="app.js"></script>
+
+<script
+    type="module"
+    src="app.js"
+></script>
 
 </body>
+
 </html>
