@@ -212,3 +212,42 @@ textarea {
     cursor: not-allowed;
 
 }
+.subject-group {
+    margin-bottom: 10px;
+}
+
+.subject-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.subject-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.arrow {
+    width: 18px;
+}
+
+.subject-chapters {
+    padding: 6px 0 6px 18px;
+}
+
+.chapter-item {
+    padding: 12px 14px;
+    margin: 5px 0;
+    border-radius: 8px;
+}
+
+.hidden {
+    display: none;
+}
