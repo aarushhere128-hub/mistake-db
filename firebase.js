@@ -2,8 +2,9 @@
 // FIREBASE
 // ==========================================
 
-import { initializeApp } from
-    "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
 import {
     getFirestore,
@@ -12,13 +13,13 @@ import {
     getDocs,
     deleteDoc,
     doc
-} from
-    "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
 // ==========================================
 // FIREBASE CONFIG
 // ==========================================
+
 const firebaseConfig = {
   apiKey: "AIzaSyBIDPgCrrPPv99x9wXM6U8m12HmqaX6cS4",
   authDomain: "mistake-db.firebaseapp.com",
@@ -41,18 +42,14 @@ const db =
 
 
 // ==========================================
-// MISTAKES COLLECTION
+// MISTAKES
 // ==========================================
 
 const mistakesCollection =
     collection(db, "mistakes");
 
 
-// ==========================================
-// ADD MISTAKE
-// ==========================================
-
-async function addMistakeToDB(data) {
+export async function addMistakeToDB(data) {
 
     const docRef =
         await addDoc(
@@ -64,11 +61,7 @@ async function addMistakeToDB(data) {
 }
 
 
-// ==========================================
-// GET MISTAKES
-// ==========================================
-
-async function getMistakesFromDB() {
+export async function getMistakesFromDB() {
 
     const snapshot =
         await getDocs(
@@ -87,11 +80,7 @@ async function getMistakesFromDB() {
 }
 
 
-// ==========================================
-// DELETE MISTAKE
-// ==========================================
-
-async function deleteMistakeFromDB(
+export async function deleteMistakeFromDB(
     mistakeId
 ) {
 
@@ -105,9 +94,30 @@ async function deleteMistakeFromDB(
 }
 
 
-export {
-    db,
-    addMistakeToDB,
-    getMistakesFromDB,
-    deleteMistakeFromDB
-};
+// ==========================================
+// STUDY ENGINE SUBJECTS
+// ==========================================
+
+export async function getStudyEngineSubjects() {
+
+    const collectionRef =
+        collection(
+            db,
+            "studyEngineSubjects"
+        );
+
+    const snapshot =
+        await getDocs(
+            collectionRef
+        );
+
+    return snapshot.docs.map(
+        document => ({
+
+            id: document.id,
+
+            ...document.data()
+
+        })
+    );
+}
