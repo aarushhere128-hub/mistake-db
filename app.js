@@ -57,14 +57,24 @@ async function loadStudyEngineData() {
 
     try {
 
-        subjects =
+        const latestSubjects =
             await getStudyEngineSubjects();
+
+        subjects =
+            Array.isArray(latestSubjects)
+                ? latestSubjects
+                : [];
 
         populateSubjects();
 
+        renderSubjectChapterList();
+
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Failed to load Study Engine data:",
+            error
+        );
 
         subjectSelect.innerHTML = `
 
@@ -74,13 +84,15 @@ async function loadStudyEngineData() {
 
         `;
 
+        renderSubjectChapterList();
+
     }
 
 }
 
 
 // ==========================================
-// POPULATE SUBJECTS
+// POPULATE SUBJECT DROPDOWN
 // ==========================================
 
 function populateSubjects() {
@@ -119,7 +131,7 @@ function populateSubjects() {
 
 
 // ==========================================
-// POPULATE CHAPTERS
+// POPULATE CHAPTER DROPDOWN
 // ==========================================
 
 function populateChapters() {
@@ -142,6 +154,7 @@ function populateChapters() {
         `;
 
         return;
+
     }
 
 
@@ -152,9 +165,11 @@ function populateChapters() {
         );
 
 
-    if (!subject ||
-        !subject.chapters ||
-        subject.chapters.length === 0) {
+    if (
+        !subject ||
+        !Array.isArray(subject.chapters) ||
+        subject.chapters.length === 0
+    ) {
 
         chapterSelect.innerHTML = `
 
@@ -165,6 +180,7 @@ function populateChapters() {
         `;
 
         return;
+
     }
 
 
@@ -202,6 +218,228 @@ function populateChapters() {
 
 
 // ==========================================
+// RENDER SUBJECT + CHAPTER LIST
+// ==========================================
+
+function renderSubjectChapterList() {
+
+    const container =
+        document.getElementById(
+            "subjectsList"
+        );
+
+
+    if (!container) {
+
+        console.warn(
+            "subjectsList element not found."
+        );
+
+        return;
+
+    }
+
+
+    container.innerHTML = "";
+
+
+    if (subjects.length === 0) {
+
+        container.innerHTML = `
+
+            <p class="empty-message">
+                No subjects found.
+            </p>
+
+        `;
+
+        return;
+
+    }
+
+
+    subjects.forEach(
+        subject => {
+
+            const group =
+                document.createElement(
+                    "div"
+                );
+
+            group.className =
+                "subject-group";
+
+
+            // ==================================
+            // SUBJECT HEADER
+            // ==================================
+
+            const header =
+                document.createElement(
+                    "button"
+                );
+
+            header.type =
+                "button";
+
+            header.className =
+                "subject-header";
+
+
+            const chapters =
+                Array.isArray(
+                    subject.chapters
+                )
+                    ? subject.chapters
+                    : [];
+
+
+            header.innerHTML = `
+
+                <span class="subject-header-left">
+
+                    <span class="arrow">
+                        ▶
+                    </span>
+
+                    ${escapeHTML(
+                        subject.name
+                    )}
+
+                </span>
+
+                <span class="subject-header-right">
+
+                    ${chapters.length}
+                    chapter${chapters.length === 1 ? "" : "s"}
+
+                </span>
+
+            `;
+
+
+            // ==================================
+            // CHAPTER CONTAINER
+            // ==================================
+
+            const chapterContainer =
+                document.createElement(
+                    "div"
+                );
+
+            chapterContainer.className =
+                "subject-chapters hidden";
+
+
+            // ==================================
+            // TOGGLE SUBJECT
+            // ==================================
+
+            header.addEventListener(
+                "click",
+                () => {
+
+                    const isHidden =
+                        chapterContainer.classList.contains(
+                            "hidden"
+                        );
+
+
+                    chapterContainer.classList.toggle(
+                        "hidden"
+                    );
+
+
+                    const arrow =
+                        header.querySelector(
+                            ".arrow"
+                        );
+
+
+                    if (arrow) {
+
+                        arrow.textContent =
+                            isHidden
+                                ? "▼"
+                                : "▶";
+
+                    }
+
+                }
+            );
+
+
+            // ==================================
+            // CHAPTERS
+            // ==================================
+
+            if (chapters.length === 0) {
+
+                chapterContainer.innerHTML = `
+
+                    <div class="empty-message">
+
+                        No chapters added yet.
+
+                    </div>
+
+                `;
+
+            } else {
+
+                chapters.forEach(
+                    chapter => {
+
+                        const chapterItem =
+                            document.createElement(
+                                "div"
+                            );
+
+                        chapterItem.className =
+                            "chapter-item";
+
+
+                        chapterItem.innerHTML = `
+
+                            <span>
+                                ${escapeHTML(
+                                    chapter.name
+                                )}
+                            </span>
+
+                        `;
+
+
+                        chapterContainer.appendChild(
+                            chapterItem
+                        );
+
+                    }
+                );
+
+            }
+
+
+            group.appendChild(
+                header
+            );
+
+            group.appendChild(
+                chapterContainer
+            );
+
+
+            container.appendChild(
+                group
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
 // LOAD MISTAKES
 // ==========================================
 
@@ -210,10 +448,19 @@ async function loadMistakes() {
     mistakesList.innerHTML =
         "<p>Loading mistakes...</p>";
 
+
     try {
 
         mistakes =
             await getMistakesFromDB();
+
+
+        if (!Array.isArray(mistakes)) {
+
+            mistakes = [];
+
+        }
+
 
         renderMistakes();
 
@@ -241,6 +488,7 @@ function renderMistakes() {
             "<p>No mistakes recorded yet.</p>";
 
         return;
+
     }
 
 
@@ -254,6 +502,7 @@ function renderMistakes() {
                 document.createElement(
                     "div"
                 );
+
 
             div.className =
                 "mistake-card";
@@ -284,6 +533,7 @@ function renderMistakes() {
                 </h3>
 
                 <p>
+
                     <strong>
                         ${escapeHTML(
                             subject?.name ||
@@ -297,17 +547,24 @@ function renderMistakes() {
                         chapter?.name ||
                         "Unknown chapter"
                     )}
+
                 </p>
 
                 <p>
-                    <strong>Type:</strong>
+
+                    <strong>
+                        Type:
+                    </strong>
+
                     ${escapeHTML(
                         mistake.mistakeType ||
                         "Not specified"
                     )}
+
                 </p>
 
                 <p>
+
                     <strong>
                         What went wrong:
                     </strong>
@@ -316,9 +573,11 @@ function renderMistakes() {
                         mistake.explanation ||
                         "Not recorded"
                     )}
+
                 </p>
 
                 <p>
+
                     <strong>
                         How to fix:
                     </strong>
@@ -327,11 +586,14 @@ function renderMistakes() {
                         mistake.fix ||
                         "Not recorded"
                     )}
+
                 </p>
 
                 <button
                     class="delete-btn"
-                    data-id="${mistake.id}"
+                    data-id="${escapeHTML(
+                        mistake.id
+                    )}"
                 >
                     Delete
                 </button>
@@ -340,7 +602,9 @@ function renderMistakes() {
 
 
             div
-                .querySelector(".delete-btn")
+                .querySelector(
+                    ".delete-btn"
+                )
                 .addEventListener(
                     "click",
                     () =>
@@ -369,8 +633,10 @@ async function saveMistake() {
     const subjectId =
         subjectSelect.value;
 
+
     const chapterId =
         chapterSelect.value;
+
 
     const question =
         document
@@ -380,12 +646,14 @@ async function saveMistake() {
             .value
             .trim();
 
+
     const mistakeType =
         document
             .getElementById(
                 "mistakeType"
             )
             .value;
+
 
     const explanation =
         document
@@ -394,6 +662,7 @@ async function saveMistake() {
             )
             .value
             .trim();
+
 
     const fix =
         document
@@ -411,6 +680,7 @@ async function saveMistake() {
         );
 
         return;
+
     }
 
 
@@ -421,6 +691,7 @@ async function saveMistake() {
         );
 
         return;
+
     }
 
 
@@ -431,49 +702,40 @@ async function saveMistake() {
         );
 
         return;
+
     }
 
 
     const mistake = {
 
         subjectId:
-
             subjectId,
 
         chapterId:
-
             chapterId,
 
         question:
-
             question,
 
         mistakeType:
-
             mistakeType,
 
         explanation:
-
             explanation,
 
         fix:
-
             fix,
 
         priority:
-
             1,
 
         timesRepeated:
-
             0,
 
         createdAt:
-
             new Date().toISOString(),
 
         lastReviewed:
-
             null
 
     };
@@ -481,6 +743,7 @@ async function saveMistake() {
 
     saveMistakeBtn.disabled =
         true;
+
 
     saveMistakeBtn.textContent =
         "Saving...";
@@ -499,11 +762,13 @@ async function saveMistake() {
             )
             .value = "";
 
+
         document
             .getElementById(
                 "mistakeExplanation"
             )
             .value = "";
+
 
         document
             .getElementById(
@@ -528,6 +793,7 @@ async function saveMistake() {
 
     saveMistakeBtn.disabled =
         false;
+
 
     saveMistakeBtn.textContent =
         "Save Mistake";
@@ -561,6 +827,7 @@ async function deleteMistake(
         await deleteMistakeFromDB(
             mistakeId
         );
+
 
         await loadMistakes();
 
