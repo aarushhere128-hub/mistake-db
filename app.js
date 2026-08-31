@@ -5,7 +5,8 @@
 import {
     addMistakeToDB,
     getMistakesFromDB,
-    deleteMistakeFromDB
+    deleteMistakeFromDB,
+    getStudyEngineSubjects
 } from "./firebase.js";
 
 
